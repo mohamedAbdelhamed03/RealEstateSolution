@@ -34,7 +34,7 @@ namespace RealEstate.WebAPI.Controllers
 		{
 			try
 			{
-				IEnumerable<Estate> estates = await _unitOfWork.EstateRepository.GetAll(null, ["Category"]);
+				IEnumerable<Estate> estates = await _unitOfWork.EstateRepository.GetAll(null, ["Category", "Company"]);
 				return Ok(_mapper.Map<IEnumerable<EstateResponseDTO>>(estates));
 
 
@@ -52,7 +52,7 @@ namespace RealEstate.WebAPI.Controllers
 		{
 			try
 			{
-				Estate? estate = await _unitOfWork.EstateRepository.Get(e => e.Id == id, ["Category"]);
+				Estate? estate = await _unitOfWork.EstateRepository.Get(e => e.Id == id, ["Category", "Company"]);
 				if (estate == null)
 				{
 					return NotFound($"Estate with ID {id} not found.");
@@ -128,7 +128,7 @@ namespace RealEstate.WebAPI.Controllers
 
 
 				var createdEstate = await _unitOfWork.EstateRepository.Get(
-			e => e.Id == estate.Id, ["Category"]);
+			e => e.Id == estate.Id, ["Category", "Company"]);
 
 
 				return CreatedAtAction(nameof(GetEstate), new { id = createdEstate.Id }, _mapper.Map<EstateResponseDTO>(createdEstate));
@@ -146,7 +146,7 @@ namespace RealEstate.WebAPI.Controllers
 		{
 			try
 			{
-				Estate? estate = await _unitOfWork.EstateRepository.Get(e => e.Id == id, ["Category"]);
+				Estate? estate = await _unitOfWork.EstateRepository.Get(e => e.Id == id, ["Category", "Company"]);
 				if (estate == null)
 				{
 					return NotFound($"Estate with ID {id} not found.");
@@ -242,7 +242,7 @@ namespace RealEstate.WebAPI.Controllers
 				await _unitOfWork.EstateRepository.Update(estate);
 
 				var updatedEstate = await _unitOfWork.EstateRepository.Get(
-			e => e.Id == estate.Id, ["Category"]);
+			e => e.Id == estate.Id, ["Category", "Company"]);
 				return Ok(_mapper.Map<EstateResponseDTO>(updatedEstate));
 			}
 			catch (Exception ex)
@@ -261,7 +261,7 @@ namespace RealEstate.WebAPI.Controllers
 			}
 			try
 			{
-				Estate? estate = await _unitOfWork.EstateRepository.Get(e => e.Id == id, ["Category"], true);
+				Estate? estate = await _unitOfWork.EstateRepository.Get(e => e.Id == id, ["Category", "Company"], true);
 				if (estate == null)
 				{
 					return NotFound($"Estate with ID {id} not found.");
@@ -276,7 +276,7 @@ namespace RealEstate.WebAPI.Controllers
 				updatedEstate.Id = id;
 				await _unitOfWork.EstateRepository.Update(updatedEstate);
 				var patchedEstate = await _unitOfWork.EstateRepository.Get(
-			e => e.Id == updatedEstate.Id, ["Category"]);
+			e => e.Id == updatedEstate.Id, ["Category", "Company"]);
 				return Ok(_mapper.Map<EstateResponseDTO>(patchedEstate));
 			}
 			catch (Exception ex)

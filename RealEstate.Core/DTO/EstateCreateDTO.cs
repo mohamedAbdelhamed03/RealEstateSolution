@@ -21,11 +21,16 @@ namespace RealEstate.Core.DTO
 		public double Rate { get; set; }
 		public int Sqft { get; set; }
 		public int Occupancy { get; set; }
+		public double Price { get; set; }
+		public int Bedrooms { get; set; }
+		public int Bathrooms { get; set; }
+
 		public IFormFile? Image { get; set; }
 
 		public string? Amenity { get; set; }
 		public DateTime CreatedAt { get; set; }
 		public DateTime UpdatedAt { get; set; }
 		public Guid CategoryId { get; set; } // Foreign key to Category
+		public Guid CompanyId { get; set; } // Foreign key to Company
 	}
 }

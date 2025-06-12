@@ -16,6 +16,9 @@ namespace RealEstate.Core.Domain.Entities
 		public string? EstateNumber { get; set; }
 		public string? Details { get; set; }
 		public double Rate { get; set; }
+		public double Price { get; set; }
+		public int Bedrooms { get; set; }
+		public int Bathrooms { get; set; }
 		public int Sqft { get; set; }
 		public int Occupancy { get; set; }
 		public string? ImageUrl { get; set; }
@@ -26,5 +29,8 @@ namespace RealEstate.Core.Domain.Entities
 		public Guid CategoryId { get; set; }
 		[ForeignKey("CategoryId")]
 		public Category? Category { get; set; }
+		public Guid CompanyId { get; set; }
+		[ForeignKey("CompanyId")]
+		public Company? Company { get; set; }
 	}
 }

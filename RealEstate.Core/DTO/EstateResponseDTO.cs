@@ -20,6 +20,10 @@ namespace RealEstate.Core.DTO
 		public double Rate { get; set; }
 		public int Sqft { get; set; }
 		public int Occupancy { get; set; }
+		public double Price { get; set; }
+		public int Bedrooms { get; set; }
+		public int Bathrooms { get; set; }
+
 		public string? ImageUrl { get; set; }
 		public string? ImageLocalPath { get; set; }
 		public string? Amenity { get; set; }
@@ -27,5 +31,7 @@ namespace RealEstate.Core.DTO
 		public DateTime UpdatedAt { get; set; }
 		public Guid CategoryId { get; set; } // Foreign key to Category
 		public string? CategoryName { get; set; }
+		public Guid CompanyId { get; set; }
+		public string? CompanyName { get; set; }
 	}
 }

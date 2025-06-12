@@ -50,7 +50,7 @@ namespace RealEstate.Core.Services
 				issuer: _jwt.Issuer,
 				audience: _jwt.Audience,
 				claims: claims,
-				expires: DateTime.Now.AddMinutes(_jwt.DurationInMinutes),
+				expires: DateTime.Now.AddHours(_jwt.DurationInHours),
 				signingCredentials: signingCredentials);
 
 			return jwtSecurityToken;

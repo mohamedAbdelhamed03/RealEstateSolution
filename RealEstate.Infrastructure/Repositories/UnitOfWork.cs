@@ -14,6 +14,7 @@ namespace RealEstate.Infrastructure.Repositories
 		private readonly ApplicationDbContext _db;
 		public IEstateRepository EstateRepository { get; private set; }
 		public ICategoryRepository CategoryRepository { get; private set; }
+		public ICompanyRepository CompanyRepository { get; private set; }
 
 
 		public UnitOfWork(ApplicationDbContext db)
@@ -21,6 +22,7 @@ namespace RealEstate.Infrastructure.Repositories
 			_db = db;
 			EstateRepository = new EstateRepository(_db);
 			CategoryRepository = new CategoryRepository(_db);
+			CompanyRepository = new CompanyRepository(_db);
 		}
 	}
 }

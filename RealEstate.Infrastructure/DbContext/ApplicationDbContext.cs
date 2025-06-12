@@ -14,6 +14,7 @@ namespace RealEstate.Infrastructure.DbContext
 	{
 		public DbSet<Estate> estates { get; set; }
 		public DbSet<Category> categories { get; set; }
+		public DbSet<Company> companies { get; set; }
 
 		public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
 		{
@@ -33,7 +34,9 @@ namespace RealEstate.Infrastructure.DbContext
 					Occupancy = 4,
 					ImageUrl = "https://example.com/images/estate1.jpg",
 					Amenity = "Pool, Gym, Parking",
-					CategoryId = Guid.Parse("5428C770-B3B7-4509-A208-161957823537")
+					CategoryId = Guid.Parse("5428C770-B3B7-4509-A208-161957823537"),
+					CompanyId = Guid.Parse("D14B8033-6397-4E77-BFCF-EF099E5204A5")
+
 				},
 				new Estate
 				{
@@ -46,7 +49,8 @@ namespace RealEstate.Infrastructure.DbContext
 					Occupancy = 6,
 					ImageUrl = "https://example.com/images/estate2.jpg",
 					Amenity = "Garden, Garage, Security",
-					CategoryId = Guid.Parse("46B6CC6A-DE9E-48D3-B6D1-9201D71169D6")
+					CategoryId = Guid.Parse("46B6CC6A-DE9E-48D3-B6D1-9201D71169D6"),
+					CompanyId = Guid.Parse("839ADB92-8619-4DC3-BA81-2E3BF8D40F6A")
 				},
 				new Estate
 				{
@@ -59,7 +63,8 @@ namespace RealEstate.Infrastructure.DbContext
 					Occupancy = 5,
 					ImageUrl = "https://example.com/images/estate3.jpg",
 					Amenity = "Balcony, Terrace, Parking",
-					CategoryId = Guid.Parse("357E9CC3-62E0-44E6-AD74-782A73497FE9")
+					CategoryId = Guid.Parse("357E9CC3-62E0-44E6-AD74-782A73497FE9"),
+					CompanyId = Guid.Parse("E24C7F38-5942-484B-9863-53BA26132A25")
 				},
 				new Estate
 				{
@@ -72,7 +77,8 @@ namespace RealEstate.Infrastructure.DbContext
 					Occupancy = 4,
 					ImageUrl = "https://example.com/images/estate4.jpg",
 					Amenity = "Backyard, Garage, Security",
-					CategoryId = Guid.Parse("3BB3DC78-4F92-4785-A942-E45DB3F38424")
+					CategoryId = Guid.Parse("3BB3DC78-4F92-4785-A942-E45DB3F38424"),
+					CompanyId = Guid.Parse("D14B8033-6397-4E77-BFCF-EF099E5204A5")
 				},
 				new Estate
 				{
@@ -85,7 +91,8 @@ namespace RealEstate.Infrastructure.DbContext
 					Occupancy = 10,
 					ImageUrl = "https://example.com/images/estate5.jpg",
 					Amenity = "Parking, Security, Air Conditioning",
-					CategoryId = Guid.Parse("DF99C125-E092-4AA7-BBC1-A8AD04D1AADD")
+					CategoryId = Guid.Parse("DF99C125-E092-4AA7-BBC1-A8AD04D1AADD"),
+					CompanyId = Guid.Parse("839ADB92-8619-4DC3-BA81-2E3BF8D40F6A")
 				},
 				new Estate
 				{
@@ -98,7 +105,8 @@ namespace RealEstate.Infrastructure.DbContext
 					Occupancy = 8,
 					ImageUrl = "https://example.com/images/estate6.jpg",
 					Amenity = "Pool, Garden, Security",
-					CategoryId = Guid.Parse("46B6CC6A-DE9E-48D3-B6D1-9201D71169D6")
+					CategoryId = Guid.Parse("46B6CC6A-DE9E-48D3-B6D1-9201D71169D6"),
+					CompanyId = Guid.Parse("E24C7F38-5942-484B-9863-53BA26132A25")
 				},
 				new Estate
 				{
@@ -111,7 +119,8 @@ namespace RealEstate.Infrastructure.DbContext
 					Occupancy = 3,
 					ImageUrl = "https://example.com/images/estate7.jpg",
 					Amenity = "Gym, Parking, Balcony",
-					CategoryId = Guid.Parse("5428C770-B3B7-4509-A208-161957823537")
+					CategoryId = Guid.Parse("5428C770-B3B7-4509-A208-161957823537"),
+					CompanyId = Guid.Parse("D14B8033-6397-4E77-BFCF-EF099E5204A5")
 				}
 				);
 			modelBuilder.Entity<Category>().HasData(
@@ -142,7 +151,41 @@ namespace RealEstate.Infrastructure.DbContext
 				}
 
 			);
+			modelBuilder.Entity<Company>().HasData(
+				new Company
+				{
+					Id = Guid.Parse("D14B8033-6397-4E77-BFCF-EF099E5204A5"),
+					Name = "Falcon Real Estate",
+					State = "Cairo",
+					City = "Nasr City",
+					PostalCode = "12345",
+					StreetAddress = "123 Main St",
+					PhoneNumber = "+1234567890",
+					Email = "falcon@gmai.com",
+				},
+				new Company
+				{
+					Id = Guid.Parse("839ADB92-8619-4DC3-BA81-2E3BF8D40F6A"),
+					Name = "Eagle Realty",
+					State = "Giza",
+					City = "Dokki",
+					PostalCode = "54321",
+					StreetAddress = "456 Elm St",
+					PhoneNumber = "+0987654321",
+					Email = "eagle@gmail.com",
+				},
+				new Company
+				{
+					Id = Guid.Parse("E24C7F38-5942-484B-9863-53BA26132A25"),
+					Name = "Hawk Properties",
+					State = "Alexandria",
+					City = "Sidi Gaber",
+					PostalCode = "67890",
+					StreetAddress = "789 Oak St",
+					PhoneNumber = "+1122334455",
+					Email = "hawk@gmail.com"
+				}
+				);
 		}
-
 	}
 }
