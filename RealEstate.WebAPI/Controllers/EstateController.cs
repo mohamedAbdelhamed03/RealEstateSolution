@@ -13,9 +13,9 @@ using RealEstate.Infrastructure.DbContext;
 
 namespace RealEstate.WebAPI.Controllers
 {
-	[Authorize]
 	[Route("api/[controller]")]
 	[ApiController]
+	[Authorize]
 	public class EstateController : ControllerBase
 	{
 		private readonly IUnitOfWork _unitOfWork;
