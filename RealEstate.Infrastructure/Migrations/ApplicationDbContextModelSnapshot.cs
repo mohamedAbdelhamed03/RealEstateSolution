@@ -631,14 +631,12 @@ namespace RealEstate.Infrastructure.Migrations
                 {
                     b.OwnsMany("RealEstate.Core.Domain.Entities.RefreshToken", "RefreshTokens", b1 =>
                         {
-                            b1.Property<Guid>("ApplicationUserId")
+                            b1.Property<Guid>("Id")
+                                .ValueGeneratedOnAdd()
                                 .HasColumnType("uniqueidentifier");
 
-                            b1.Property<int>("Id")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("int");
-
-                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+                            b1.Property<Guid>("ApplicationUserId")
+                                .HasColumnType("uniqueidentifier");
 
                             b1.Property<DateTime>("CreatedOn")
                                 .HasColumnType("datetime2");
@@ -652,7 +650,9 @@ namespace RealEstate.Infrastructure.Migrations
                             b1.Property<string>("Token")
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.HasKey("ApplicationUserId", "Id");
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("ApplicationUserId");
 
                             b1.ToTable("RefreshToken");
 

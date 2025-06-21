@@ -62,6 +62,7 @@ namespace RealEstate.Core.Services
 			RandomNumberGenerator.Fill(randomNumber); // Updated to use RandomNumberGenerator static method
 			return new RefreshToken()
 			{
+				Id = Guid.NewGuid(),
 				Token = Convert.ToBase64String(randomNumber),
 				ExpiresOn = DateTime.UtcNow.AddDays(10),
 				CreatedOn = DateTime.UtcNow,

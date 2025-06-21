@@ -12,8 +12,8 @@ using RealEstate.Infrastructure.DbContext;
 namespace RealEstate.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250601110118_EditRefreshTokenTable")]
-    partial class EditRefreshTokenTable
+    [Migration("20250613144338_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -185,6 +185,86 @@ namespace RealEstate.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("RealEstate.Core.Domain.Entities.Company", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("City")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PostalCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("State")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StreetAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("companies");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("d14b8033-6397-4e77-bfcf-ef099e5204a5"),
+                            City = "Nasr City",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "falcon@gmai.com",
+                            Name = "Falcon Real Estate",
+                            PhoneNumber = "+1234567890",
+                            PostalCode = "12345",
+                            State = "Cairo",
+                            StreetAddress = "123 Main St",
+                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = new Guid("839adb92-8619-4dc3-ba81-2e3bf8d40f6a"),
+                            City = "Dokki",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "eagle@gmail.com",
+                            Name = "Eagle Realty",
+                            PhoneNumber = "+0987654321",
+                            PostalCode = "54321",
+                            State = "Giza",
+                            StreetAddress = "456 Elm St",
+                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = new Guid("e24c7f38-5942-484b-9863-53ba26132a25"),
+                            City = "Sidi Gaber",
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "hawk@gmail.com",
+                            Name = "Hawk Properties",
+                            PhoneNumber = "+1122334455",
+                            PostalCode = "67890",
+                            State = "Alexandria",
+                            StreetAddress = "789 Oak St",
+                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        });
+                });
+
             modelBuilder.Entity("RealEstate.Core.Domain.Entities.Estate", b =>
                 {
                     b.Property<Guid>("Id")
@@ -194,7 +274,16 @@ namespace RealEstate.Infrastructure.Migrations
                     b.Property<string>("Amenity")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Bathrooms")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Bedrooms")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("CategoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
@@ -218,6 +307,9 @@ namespace RealEstate.Infrastructure.Migrations
                     b.Property<int>("Occupancy")
                         .HasColumnType("int");
 
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
                     b.Property<double>("Rate")
                         .HasColumnType("float");
 
@@ -231,6 +323,8 @@ namespace RealEstate.Infrastructure.Migrations
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("CompanyId");
+
                     b.ToTable("estates");
 
                     b.HasData(
@@ -238,13 +332,17 @@ namespace RealEstate.Infrastructure.Migrations
                         {
                             Id = new Guid("65958d38-6dc4-454e-9db4-a010506f9a8f"),
                             Amenity = "Pool, Gym, Parking",
+                            Bathrooms = 0,
+                            Bedrooms = 0,
                             CategoryId = new Guid("5428c770-b3b7-4509-a208-161957823537"),
+                            CompanyId = new Guid("d14b8033-6397-4e77-bfcf-ef099e5204a5"),
                             CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Details = "A luxury apartment with modern amenities.",
                             EstateNumber = "EST-001",
                             ImageUrl = "https://example.com/images/estate1.jpg",
                             Name = "Luxury Apartment",
                             Occupancy = 4,
+                            Price = 0.0,
                             Rate = 250000.0,
                             Sqft = 1200,
                             UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
@@ -253,13 +351,17 @@ namespace RealEstate.Infrastructure.Migrations
                         {
                             Id = new Guid("6f3811b2-fc13-4982-860a-0416af514635"),
                             Amenity = "Garden, Garage, Security",
+                            Bathrooms = 0,
+                            Bedrooms = 0,
                             CategoryId = new Guid("46b6cc6a-de9e-48d3-b6d1-9201d71169d6"),
+                            CompanyId = new Guid("839adb92-8619-4dc3-ba81-2e3bf8d40f6a"),
                             CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Details = "A spacious villa with a beautiful garden.",
                             EstateNumber = "EST-002",
                             ImageUrl = "https://example.com/images/estate2.jpg",
                             Name = "Spacious Villa",
                             Occupancy = 6,
+                            Price = 0.0,
                             Rate = 500000.0,
                             Sqft = 2500,
                             UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
@@ -268,13 +370,17 @@ namespace RealEstate.Infrastructure.Migrations
                         {
                             Id = new Guid("64009858-0cfe-4cdd-b0b6-a17bd02ba400"),
                             Amenity = "Balcony, Terrace, Parking",
+                            Bathrooms = 0,
+                            Bedrooms = 0,
                             CategoryId = new Guid("357e9cc3-62e0-44e6-ad74-782a73497fe9"),
+                            CompanyId = new Guid("e24c7f38-5942-484b-9863-53ba26132a25"),
                             CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Details = "A modern duplex with two floors.",
                             EstateNumber = "EST-003",
                             ImageUrl = "https://example.com/images/estate3.jpg",
                             Name = "Modern Duplex",
                             Occupancy = 5,
+                            Price = 0.0,
                             Rate = 350000.0,
                             Sqft = 1800,
                             UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
@@ -283,13 +389,17 @@ namespace RealEstate.Infrastructure.Migrations
                         {
                             Id = new Guid("f929dd87-8c20-4cb9-b4a4-215b418ad2a1"),
                             Amenity = "Backyard, Garage, Security",
+                            Bathrooms = 0,
+                            Bedrooms = 0,
                             CategoryId = new Guid("3bb3dc78-4f92-4785-a942-e45db3f38424"),
+                            CompanyId = new Guid("d14b8033-6397-4e77-bfcf-ef099e5204a5"),
                             CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Details = "A cozy residential house in a quiet neighborhood.",
                             EstateNumber = "EST-004",
                             ImageUrl = "https://example.com/images/estate4.jpg",
                             Name = "Residential House",
                             Occupancy = 4,
+                            Price = 0.0,
                             Rate = 300000.0,
                             Sqft = 1500,
                             UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
@@ -298,13 +408,17 @@ namespace RealEstate.Infrastructure.Migrations
                         {
                             Id = new Guid("148e17f1-0e65-4ed2-8320-8b2183f1018a"),
                             Amenity = "Parking, Security, Air Conditioning",
+                            Bathrooms = 0,
+                            Bedrooms = 0,
                             CategoryId = new Guid("df99c125-e092-4aa7-bbc1-a8ad04d1aadd"),
+                            CompanyId = new Guid("839adb92-8619-4dc3-ba81-2e3bf8d40f6a"),
                             CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Details = "A commercial space suitable for business operations.",
                             EstateNumber = "EST-005",
                             ImageUrl = "https://example.com/images/estate5.jpg",
                             Name = "Commercial Space",
                             Occupancy = 10,
+                            Price = 0.0,
                             Rate = 600000.0,
                             Sqft = 3000,
                             UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
@@ -313,13 +427,17 @@ namespace RealEstate.Infrastructure.Migrations
                         {
                             Id = new Guid("ce338791-bc56-4efa-923b-df4b0d88e589"),
                             Amenity = "Pool, Garden, Security",
+                            Bathrooms = 0,
+                            Bedrooms = 0,
                             CategoryId = new Guid("46b6cc6a-de9e-48d3-b6d1-9201d71169d6"),
+                            CompanyId = new Guid("e24c7f38-5942-484b-9863-53ba26132a25"),
                             CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Details = "A luxury villa with a private pool.",
                             EstateNumber = "EST-006",
                             ImageUrl = "https://example.com/images/estate6.jpg",
                             Name = "Luxury Villa",
                             Occupancy = 8,
+                            Price = 0.0,
                             Rate = 750000.0,
                             Sqft = 3500,
                             UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
@@ -328,13 +446,17 @@ namespace RealEstate.Infrastructure.Migrations
                         {
                             Id = new Guid("a7fa520a-e357-4d25-ac34-b4cdf5edd48e"),
                             Amenity = "Gym, Parking, Balcony",
+                            Bathrooms = 0,
+                            Bedrooms = 0,
                             CategoryId = new Guid("5428c770-b3b7-4509-a208-161957823537"),
+                            CompanyId = new Guid("d14b8033-6397-4e77-bfcf-ef099e5204a5"),
                             CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Details = "A contemporary apartment with city views.",
                             EstateNumber = "EST-007",
                             ImageUrl = "https://example.com/images/estate7.jpg",
                             Name = "Contemporary Apartment",
                             Occupancy = 3,
+                            Price = 0.0,
                             Rate = 400000.0,
                             Sqft = 1600,
                             UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
@@ -497,21 +619,27 @@ namespace RealEstate.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("RealEstate.Core.Domain.Entities.Company", "Company")
+                        .WithMany("Estates")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Category");
+
+                    b.Navigation("Company");
                 });
 
             modelBuilder.Entity("RealEstate.Core.Domain.IdentityEntities.ApplicationUser", b =>
                 {
                     b.OwnsMany("RealEstate.Core.Domain.Entities.RefreshToken", "RefreshTokens", b1 =>
                         {
-                            b1.Property<Guid>("ApplicationUserId")
+                            b1.Property<Guid>("Id")
+                                .ValueGeneratedOnAdd()
                                 .HasColumnType("uniqueidentifier");
 
-                            b1.Property<int>("Id")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("int");
-
-                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+                            b1.Property<Guid>("ApplicationUserId")
+                                .HasColumnType("uniqueidentifier");
 
                             b1.Property<DateTime>("CreatedOn")
                                 .HasColumnType("datetime2");
@@ -525,7 +653,9 @@ namespace RealEstate.Infrastructure.Migrations
                             b1.Property<string>("Token")
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.HasKey("ApplicationUserId", "Id");
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("ApplicationUserId");
 
                             b1.ToTable("RefreshToken");
 
@@ -537,6 +667,11 @@ namespace RealEstate.Infrastructure.Migrations
                 });
 
             modelBuilder.Entity("RealEstate.Core.Domain.Entities.Category", b =>
+                {
+                    b.Navigation("Estates");
+                });
+
+            modelBuilder.Entity("RealEstate.Core.Domain.Entities.Company", b =>
                 {
                     b.Navigation("Estates");
                 });
