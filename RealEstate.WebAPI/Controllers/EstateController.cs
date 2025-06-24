@@ -1,15 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using RealEstate.Core.Domain.Entities;
-using RealEstate.Core.Domain.RepositoryContracts;
-using RealEstate.Core.DTO;
+using RealEstate.Core.DTOs;
 using RealEstate.Core.Enums;
-using RealEstate.Infrastructure.DbContext;
+using RealEstate.Core.ServiceContracts.Estates;
 
 namespace RealEstate.WebAPI.Controllers
 {
@@ -18,13 +14,20 @@ namespace RealEstate.WebAPI.Controllers
 	[Authorize]
 	public class EstateController : ControllerBase
 	{
-		private readonly IUnitOfWork _unitOfWork;
+		private readonly IEstatesAdderService _estatesAdderService;
+		private readonly IEstatesDeleterService _estatesDeleterService;
+		private readonly IEstatesGetterService _estatesGetterService;
+		private readonly IEstatesUpdaterService _estatesUpdaterService;
+		private readonly IEstatesSorterService _estatesSorterService;
 		private readonly IMapper _mapper;
-		public EstateController(IUnitOfWork unitOfWork, IMapper mapper)
+		public EstateController(IEstatesAdderService estatesAdderService, IEstatesDeleterService estatesDeleterService, IEstatesGetterService estatesGetterService, IEstatesUpdaterService estatesUpdaterService, IEstatesSorterService estatesSorterService, IMapper mapper)
 		{
-			_unitOfWork = unitOfWork;
 			_mapper = mapper;
-
+			_estatesAdderService = estatesAdderService;
+			_estatesDeleterService = estatesDeleterService;
+			_estatesGetterService = estatesGetterService;
+			_estatesUpdaterService = estatesUpdaterService;
+			_estatesSorterService = estatesSorterService;
 		}
 		[HttpGet]
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -34,10 +37,54 @@ namespace RealEstate.WebAPI.Controllers
 		{
 			try
 			{
-				IEnumerable<Estate> estates = await _unitOfWork.EstateRepository.GetAll(null, ["Category", "Company"]);
-				return Ok(_mapper.Map<IEnumerable<EstateResponseDTO>>(estates));
+				IEnumerable<EstateResponseDTO> estates = await _estatesGetterService.GetAllEstates();
+
+				return Ok(estates);
 
 
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, $"Internal server error: {ex.Message}");
+			}
+		}
+		[HttpGet("filter")]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		public async Task<ActionResult<IEnumerable<EstateResponseDTO>>> GetFilteredEstates(string searchBy, string searchString)
+		{
+			IEnumerable<EstateResponseDTO> estates = await _estatesGetterService.GetAllEstates();
+			if (searchBy == null || searchString == null)
+			{
+				return Ok(estates);
+			}
+			try
+			{
+
+				IEnumerable<EstateResponseDTO> filteredEstates = await _estatesGetterService.GetFilterdEstate(searchBy, searchString);
+				if (filteredEstates == null || !filteredEstates.Any())
+				{
+					return NotFound("No estates found matching the filter criteria.");
+				}
+				return Ok(filteredEstates);
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, $"Internal server error: {ex.Message}");
+			}
+		}
+		[HttpGet("sort")]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		public async Task<ActionResult<IEnumerable<EstateResponseDTO>>> GetSortedEstates(string sortBy, SortedOrderOptions sortOrder)
+		{
+			try
+			{
+
+				IEnumerable<EstateResponseDTO> sortedEstates = await _estatesSorterService.SortEstatesAsync(sortBy, sortOrder);
+				return Ok(sortedEstates);
 			}
 			catch (Exception ex)
 			{
@@ -48,16 +95,16 @@ namespace RealEstate.WebAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		[ProducesResponseType(StatusCodes.Status200OK)]
-		public async Task<ActionResult<EstateResponseDTO>> GetEstate(Guid id)
+		public async Task<ActionResult<EstateResponseDTO>> GetEstateById(Guid id)
 		{
 			try
 			{
-				Estate? estate = await _unitOfWork.EstateRepository.Get(e => e.Id == id, ["Category", "Company"]);
+				EstateResponseDTO estate = await _estatesGetterService.GetEstateById(id);
 				if (estate == null)
 				{
 					return NotFound($"Estate with ID {id} not found.");
 				}
-				return Ok(_mapper.Map<EstateResponseDTO>(estate));
+				return Ok(estate);
 			}
 			catch (Exception ex)
 			{
@@ -76,62 +123,8 @@ namespace RealEstate.WebAPI.Controllers
 			}
 			try
 			{
-				Estate estate = _mapper.Map<Estate>(estateCreateDTO);
-				estate.Id = Guid.NewGuid();
-				estate.CreatedAt = DateTime.UtcNow;
-				estate.UpdatedAt = DateTime.UtcNow;
-				// Ensure a new ID is generated for the estate
-				//Estate estate = new()
-				//{
-				//	Name = estateCreateDTO.Name,
-				//	Details = estateCreateDTO.Details,
-				//	Rate = estateCreateDTO.Rate,
-				//	Sqft = estateCreateDTO.Sqft,
-				//	Occupancy = estateCreateDTO.Occupancy,
-				//	ImageUrl = estateCreateDTO.ImageUrl,
-				//	Amenity = estateCreateDTO.Amenity,
-				//	CategoryId = estateCreateDTO.CategoryId,
-				//	CreatedAt = DateTime.UtcNow,
-				//	UpdatedAt = DateTime.UtcNow
-				//};
-				await _unitOfWork.EstateRepository.Add(estate);
-				if (estateCreateDTO.Image != null)
-				{
-					string fileName = estate.Id + Path.GetExtension(estateCreateDTO.Image.FileName);
-					string filePath = @"wwwroot\Images\" + fileName;
-
-					var directoryLocation = Path.Combine(Directory.GetCurrentDirectory(), filePath);
-
-					FileInfo file = new FileInfo(directoryLocation);
-
-					if (file.Exists)
-					{
-						file.Delete();
-					}
-
-					using (var fileStream = new FileStream(directoryLocation, FileMode.Create))
-					{
-						estateCreateDTO.Image.CopyTo(fileStream);
-					}
-
-					var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}{HttpContext.Request.PathBase.Value}";
-					estate.ImageUrl = baseUrl + "/Images/" + fileName;
-					estate.ImageLocalPath = filePath;
-
-				}
-				else
-				{
-					estate.ImageUrl = "https://placehold.co/600x400";
-				}
-
-				await _unitOfWork.EstateRepository.Update(estate);
-
-
-				var createdEstate = await _unitOfWork.EstateRepository.Get(
-			e => e.Id == estate.Id, ["Category", "Company"]);
-
-
-				return CreatedAtAction(nameof(GetEstate), new { id = createdEstate.Id }, _mapper.Map<EstateResponseDTO>(createdEstate));
+				var createdEstate = await _estatesAdderService.AddEstateAsync(estateCreateDTO);
+				return CreatedAtAction(nameof(GetEstateById), new { id = createdEstate.Id }, _mapper.Map<EstateResponseDTO>(createdEstate));
 			}
 			catch (Exception ex)
 			{
@@ -146,27 +139,14 @@ namespace RealEstate.WebAPI.Controllers
 		{
 			try
 			{
-				Estate? estate = await _unitOfWork.EstateRepository.Get(e => e.Id == id, ["Category", "Company"]);
+				Estate? estate = _mapper.Map<Estate>(await _estatesGetterService.GetEstateById(id));
 				if (estate == null)
 				{
 					return NotFound($"Estate with ID {id} not found.");
 				}
-				if (!string.IsNullOrEmpty(estate.ImageLocalPath))
-				{
-					var oldFilePathDirectory = Path.Combine(Directory.GetCurrentDirectory(), estate.ImageLocalPath);
-					FileInfo file = new FileInfo(oldFilePathDirectory);
+				EstateResponseDTO DeletedEstet = await _estatesDeleterService.DeleteEstate(id);
 
-					if (file.Exists)
-					{
-						file.Delete();
-					}
-				}
-				bool isDeleted = await _unitOfWork.EstateRepository.Remove(estate);
-				if (!isDeleted)
-				{
-					return StatusCode(StatusCodes.Status500InternalServerError, "Error deleting estate.");
-				}
-				return Ok(_mapper.Map<EstateResponseDTO>(estate));
+				return Ok(DeletedEstet);
 			}
 			catch (Exception ex)
 			{
@@ -177,7 +157,7 @@ namespace RealEstate.WebAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		[ProducesResponseType(StatusCodes.Status200OK)]
-		public async Task<ActionResult<EstateResponseDTO>> UpdateEstate(Guid id, [FromBody] EstateUpdateDTO estateUpdateDTO)
+		public async Task<ActionResult<EstateResponseDTO>> UpdateEstate(Guid id, [FromForm] EstateUpdateDTO estateUpdateDTO)
 		{
 			if (estateUpdateDTO == null || estateUpdateDTO.Id != id)
 			{
@@ -185,65 +165,14 @@ namespace RealEstate.WebAPI.Controllers
 			}
 			try
 			{
-				Estate estate = _mapper.Map<Estate>(estateUpdateDTO);
-				estate.UpdatedAt = DateTime.UtcNow;
-				//estate.CreatedAt = estateUpdateDTO.CreatedAt;
-				//Estate? estate = new Estate
-				//{
-				//	Id = estateUpdateDTO.Id,
-				//	Name = estateUpdateDTO.Name,
-				//	Details = estateUpdateDTO.Details,
-				//	Rate = estateUpdateDTO.Rate,
-				//	Sqft = estateUpdateDTO.Sqft,
-				//	Occupancy = estateUpdateDTO.Occupancy,
-				//	ImageUrl = estateUpdateDTO.ImageUrl,
-				//	Amenity = estateUpdateDTO.Amenity,
-				//	CategoryId = estateUpdateDTO.CategoryId,
-				//	CreatedAt = estateUpdateDTO.CreatedAt,
-				//	UpdatedAt = DateTime.UtcNow
-				//};
+				EstateResponseDTO estate = await _estatesUpdaterService.UpdateEstate(estateUpdateDTO);
+
 				if (estate == null)
 				{
 					return NotFound($"Estate with ID {id} not found.");
 				}
-				if (estateUpdateDTO.Image != null)
-				{
-					if (!string.IsNullOrEmpty(estate.ImageLocalPath))
-					{
-						var oldFilePathDirectory = Path.Combine(Directory.GetCurrentDirectory(), estate.ImageLocalPath);
-						FileInfo file = new FileInfo(oldFilePathDirectory);
 
-						if (file.Exists)
-						{
-							file.Delete();
-						}
-					}
-
-					string fileName = estateUpdateDTO.Id + Path.GetExtension(estateUpdateDTO.Image.FileName);
-					string filePath = @"wwwroot\Images\" + fileName;
-
-					var directoryLocation = Path.Combine(Directory.GetCurrentDirectory(), filePath);
-
-					using (var fileStream = new FileStream(directoryLocation, FileMode.Create))
-					{
-						estateUpdateDTO.Image.CopyTo(fileStream);
-					}
-
-					var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}{HttpContext.Request.PathBase.Value}";
-					estate.ImageUrl = baseUrl + "/Images/" + fileName;
-					estate.ImageLocalPath = filePath;
-
-				}
-				else
-				{
-					estate.ImageUrl = "https://placehold.co/600x400";
-				}
-
-				await _unitOfWork.EstateRepository.Update(estate);
-
-				var updatedEstate = await _unitOfWork.EstateRepository.Get(
-			e => e.Id == estate.Id, ["Category", "Company"]);
-				return Ok(_mapper.Map<EstateResponseDTO>(updatedEstate));
+				return Ok(estate);
 			}
 			catch (Exception ex)
 			{
@@ -261,7 +190,7 @@ namespace RealEstate.WebAPI.Controllers
 			}
 			try
 			{
-				Estate? estate = await _unitOfWork.EstateRepository.Get(e => e.Id == id, ["Category", "Company"], true);
+				Estate? estate = _mapper.Map<Estate>(await _estatesGetterService.GetEstateById(id));
 				if (estate == null)
 				{
 					return NotFound($"Estate with ID {id} not found.");
@@ -272,11 +201,11 @@ namespace RealEstate.WebAPI.Controllers
 				{
 					return BadRequest(ModelState);
 				}
+				estateUpdateDTO.Id = id;
 				Estate updatedEstate = _mapper.Map<Estate>(estateUpdateDTO);
-				updatedEstate.Id = id;
-				await _unitOfWork.EstateRepository.Update(updatedEstate);
-				var patchedEstate = await _unitOfWork.EstateRepository.Get(
-			e => e.Id == updatedEstate.Id, ["Category", "Company"]);
+
+				await _estatesUpdaterService.UpdateEstate(estateUpdateDTO);
+				var patchedEstate = await _estatesGetterService.GetEstateById(updatedEstate.Id);
 				return Ok(_mapper.Map<EstateResponseDTO>(patchedEstate));
 			}
 			catch (Exception ex)

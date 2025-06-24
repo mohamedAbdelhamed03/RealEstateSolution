@@ -64,7 +64,7 @@ namespace RealEstate.Core.Services
 			{
 				Id = Guid.NewGuid(),
 				Token = Convert.ToBase64String(randomNumber),
-				ExpiresOn = DateTime.UtcNow.AddDays(10),
+				ExpiresOn = DateTime.UtcNow.AddDays(30),
 				CreatedOn = DateTime.UtcNow,
 			};
 

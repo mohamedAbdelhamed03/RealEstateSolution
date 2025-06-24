@@ -1,11 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using RealEstate.Core.DTO;
-using RealEstate.Core.Helpers;
+using RealEstate.Core.DTOs;
 using RealEstate.Core.ServiceContracts;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace RealEstate.WebAPI.Controllers
 {
@@ -71,7 +67,7 @@ namespace RealEstate.WebAPI.Controllers
 			{
 				return BadRequest(result);
 			}
-			SetRefreshTokenInCooKie(response.RefreshToken, response.RefreshTokenExpiration!.Value);
+			SetRefreshTokenInCooKie(response.RefreshToken!, response.RefreshTokenExpiration!.Value);
 
 			return Ok(result);
 		}

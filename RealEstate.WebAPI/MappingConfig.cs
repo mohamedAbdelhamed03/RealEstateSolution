@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using RealEstate.Core.Domain.Entities;
 using RealEstate.Core.Domain.IdentityEntities;
-using RealEstate.Core.DTO;
+using RealEstate.Core.DTOs;
 
 namespace RealEstate.WebAPI
 {
@@ -22,10 +22,12 @@ namespace RealEstate.WebAPI
 			CreateMap<Estate, EstateCreateDTO>().ReverseMap();
 			CreateMap<Estate, EstateUpdateDTO>().ReverseMap();
 			CreateMap<Category, CategoryResponseDTO>();
+			CreateMap<CategoryResponseDTO, Category>();
 			CreateMap<CategoryCreateDTO, Category>();
 			CreateMap<Category, CategoryCreateDTO>().ReverseMap();
 			CreateMap<Category, CategoryUpdateDTO>().ReverseMap();
 			CreateMap<Company, CompanyResponseDTO>();
+			CreateMap<CompanyResponseDTO, Company>();
 			CreateMap<CompanyCreateDTO, Company>();
 			CreateMap<Company, CompanyCreateDTO>().ReverseMap();
 			CreateMap<Company, CompanyUpdateDTO>().ReverseMap();

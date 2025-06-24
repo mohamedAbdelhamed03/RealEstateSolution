@@ -1,13 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using RealEstate.Core.Domain.Entities;
-using RealEstate.Core.Domain.RepositoryContracts;
-using RealEstate.Core.DTO;
-using RealEstate.Infrastructure.DbContext;
+using RealEstate.Core.DTOs;
+using RealEstate.Core.Enums;
+using RealEstate.Core.ServiceContracts.Companies;
 
 namespace RealEstate.WebAPI.Controllers
 {
@@ -16,11 +14,19 @@ namespace RealEstate.WebAPI.Controllers
 	[Authorize(Roles = "Admin")]
 	public class CompanyController : ControllerBase
 	{
-		private readonly IUnitOfWork _unitOfWork;
+		private readonly ICompaniesAdderService _companiesAdderService;
+		private readonly ICompaniesDeleterService _companiesDeleterService;
+		private readonly ICompaniesGetterService _companiesGetterService;
+		private readonly ICompaniesUpdaterService _companiesUpdaterService;
+		private readonly ICompaniesSorterService _companiesSorterService;
 		private readonly IMapper _mapper;
-		public CompanyController(IUnitOfWork unitOfWork, IMapper mapper)
+		public CompanyController(ICompaniesAdderService companiesAdderService, ICompaniesDeleterService companiesDeleterService, ICompaniesGetterService companiesGetterService, ICompaniesUpdaterService companiesUpdaterService, ICompaniesSorterService companiesSorterService, IMapper mapper)
 		{
-			_unitOfWork = unitOfWork;
+			_companiesAdderService = companiesAdderService;
+			_companiesDeleterService = companiesDeleterService;
+			_companiesGetterService = companiesGetterService;
+			_companiesUpdaterService = companiesUpdaterService;
+			_companiesSorterService = companiesSorterService;
 			_mapper = mapper;
 
 		}
@@ -28,14 +34,56 @@ namespace RealEstate.WebAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		[ProducesResponseType(StatusCodes.Status200OK)]
-		public async Task<ActionResult<IEnumerable<CompanyResponseDTO>>> GetAllCategories()
+		public async Task<ActionResult<IEnumerable<CompanyResponseDTO>>> GetAllCompanies()
 		{
 			try
 			{
-				IEnumerable<Company> categories = await _unitOfWork.CompanyRepository.GetAll();
-				return Ok(_mapper.Map<IEnumerable<CompanyResponseDTO>>(categories));
+				IEnumerable<CompanyResponseDTO> companies = await _companiesGetterService.GetAllCompanies();
+				return Ok(companies);
 
 
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, $"Internal server error: {ex.Message}");
+			}
+		}
+		[HttpGet("filter")]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		public async Task<ActionResult<IEnumerable<CompanyResponseDTO>>> GetFilteredCompanies(string searchBy, string searchString)
+		{
+			IEnumerable<CompanyResponseDTO> companies = await _companiesGetterService.GetAllCompanies();
+			if (searchBy == null || searchString == null)
+			{
+				return Ok(companies);
+			}
+			try
+			{
+
+				IEnumerable<CompanyResponseDTO> filteredCompanies = await _companiesGetterService.GetFilterdCompany(searchBy, searchString);
+				if (filteredCompanies == null || !filteredCompanies.Any())
+				{
+					return NotFound("No companies found matching the filter criteria.");
+				}
+				return Ok(filteredCompanies);
+			}
+			catch (Exception ex)
+			{
+				return StatusCode(StatusCodes.Status500InternalServerError, $"Internal server error: {ex.Message}");
+			}
+		}
+		[HttpGet("sort")]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		public async Task<ActionResult<IEnumerable<CompanyResponseDTO>>> GetSortedCompanies(string sortBy, SortedOrderOptions sortOrder)
+		{
+			try
+			{
+				IEnumerable<CompanyResponseDTO> sortedcompanies = await _companiesSorterService.SortCompaniesAsync(sortBy, sortOrder);
+				return Ok(sortedcompanies);
 			}
 			catch (Exception ex)
 			{
@@ -46,16 +94,16 @@ namespace RealEstate.WebAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		[ProducesResponseType(StatusCodes.Status200OK)]
-		public async Task<ActionResult<CompanyResponseDTO>> GetCompany(Guid id)
+		public async Task<ActionResult<CompanyResponseDTO>> GetCompanyById(Guid id)
 		{
 			try
 			{
-				Company? Company = await _unitOfWork.CompanyRepository.Get(e => e.Id == id);
-				if (Company == null)
+				CompanyResponseDTO? company = await _companiesGetterService.GetCompanyById(id);
+				if (company == null)
 				{
 					return NotFound($"Company with ID {id} not found.");
 				}
-				return Ok(_mapper.Map<CompanyResponseDTO>(Company));
+				return Ok(company);
 			}
 			catch (Exception ex)
 			{
@@ -74,17 +122,8 @@ namespace RealEstate.WebAPI.Controllers
 			}
 			try
 			{
-				Company Company = _mapper.Map<Company>(CompanyCreateDTO);
-				Company.Id = Guid.NewGuid();
-				Company.CreatedAt = DateTime.UtcNow;
-				Company.UpdatedAt = DateTime.UtcNow;
-				await _unitOfWork.CompanyRepository.Add(Company);
-
-				var createdCompany = await _unitOfWork.CompanyRepository.Get(
-			e => e.Id == Company.Id);
-
-
-				return CreatedAtAction(nameof(GetCompany), new { id = createdCompany.Id }, _mapper.Map<CompanyResponseDTO>(createdCompany));
+				CompanyResponseDTO createdCompany = await _companiesAdderService.AddCompanyAsync(CompanyCreateDTO);
+				return CreatedAtAction(nameof(GetCompanyById), new { id = createdCompany.Id }, createdCompany);
 			}
 			catch (Exception ex)
 			{
@@ -99,17 +138,14 @@ namespace RealEstate.WebAPI.Controllers
 		{
 			try
 			{
-				Company? Company = await _unitOfWork.CompanyRepository.Get(e => e.Id == id);
+				Company? Company = _mapper.Map<Company>(await _companiesGetterService.GetCompanyById(id));
 				if (Company == null)
 				{
 					return NotFound($"Company with ID {id} not found.");
 				}
-				bool isDeleted = await _unitOfWork.CompanyRepository.Remove(Company);
-				if (!isDeleted)
-				{
-					return StatusCode(StatusCodes.Status500InternalServerError, "Error deleting Company.");
-				}
-				return Ok(_mapper.Map<CompanyResponseDTO>(Company));
+				CompanyResponseDTO DeletedCompany = await _companiesDeleterService.DeleteCompany(id);
+
+				return Ok(DeletedCompany);
 			}
 			catch (Exception ex)
 			{
@@ -128,17 +164,14 @@ namespace RealEstate.WebAPI.Controllers
 			}
 			try
 			{
-				Company Company = _mapper.Map<Company>(CompanyUpdateDTO);
-				Company.UpdatedAt = DateTime.UtcNow;
+				CompanyResponseDTO Company = await _companiesUpdaterService.UpdateCompany(CompanyUpdateDTO);
+
 				if (Company == null)
 				{
 					return NotFound($"Company with ID {id} not found.");
 				}
-				await _unitOfWork.CompanyRepository.Update(Company);
 
-				var updatedCompany = await _unitOfWork.CompanyRepository.Get(
-			e => e.Id == Company.Id);
-				return Ok(_mapper.Map<CompanyResponseDTO>(updatedCompany));
+				return Ok(Company);
 			}
 			catch (Exception ex)
 			{
@@ -156,7 +189,7 @@ namespace RealEstate.WebAPI.Controllers
 			}
 			try
 			{
-				Company? Company = await _unitOfWork.CompanyRepository.Get(e => e.Id == id, noTracking: true);
+				Company? Company = _mapper.Map<Company>(await _companiesGetterService.GetCompanyById(id));
 				if (Company == null)
 				{
 					return NotFound($"Company with ID {id} not found.");
@@ -167,11 +200,10 @@ namespace RealEstate.WebAPI.Controllers
 				{
 					return BadRequest(ModelState);
 				}
+				CompanyUpdateDTO.Id = id;
 				Company updatedCompany = _mapper.Map<Company>(CompanyUpdateDTO);
-				updatedCompany.Id = id;
-				await _unitOfWork.CompanyRepository.Update(updatedCompany);
-				var patchedCompany = await _unitOfWork.CompanyRepository.Get(
-			e => e.Id == updatedCompany.Id);
+				await _companiesUpdaterService.UpdateCompany(CompanyUpdateDTO);
+				var patchedCompany = await _companiesGetterService.GetCompanyById(updatedCompany.Id);
 				return Ok(_mapper.Map<CompanyResponseDTO>(patchedCompany));
 			}
 			catch (Exception ex)

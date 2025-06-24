@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RealEstate.Core.DTO
+namespace RealEstate.Core.Enums
 {
-	public class RevokeRefreshTokenRequestDTO
+	public enum SortedOrderOptions
 	{
-		public string? Token { get; set; }
+		ASC, DESC
 	}
 }

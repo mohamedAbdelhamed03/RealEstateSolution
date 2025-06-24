@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using RealEstate.Core.Domain.IdentityEntities;
-using RealEstate.Core.DTO;
+using RealEstate.Core.DTOs;
 using RealEstate.Core.Enums;
 using RealEstate.Core.Helpers;
 using RealEstate.Core.ServiceContracts;

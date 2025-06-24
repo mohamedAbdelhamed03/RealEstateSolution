@@ -5,10 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RealEstate.Core.DTO
+namespace RealEstate.Core.DTOs
 {
-	public class CompanyResponseDTO
+	public class CompanyUpdateDTO
 	{
+		[Required]
+		public Guid Id { get; set; }
 		[Required]
 		public string? Name { get; set; }
 		public string? StreetAddress { get; set; }

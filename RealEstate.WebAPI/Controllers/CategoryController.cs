@@ -1,13 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using RealEstate.Core.Domain.Entities;
-using RealEstate.Core.Domain.RepositoryContracts;
-using RealEstate.Core.DTO;
-using RealEstate.Infrastructure.DbContext;
+using RealEstate.Core.DTOs;
+using RealEstate.Core.ServiceContracts.Categories;
 
 namespace RealEstate.WebAPI.Controllers
 {
@@ -16,11 +13,17 @@ namespace RealEstate.WebAPI.Controllers
 	[Authorize(Roles = "Admin")]
 	public class CategoryController : ControllerBase
 	{
-		private readonly IUnitOfWork _unitOfWork;
+		private readonly ICategoriesAdderService _categoriesAdderService;
+		private readonly ICategoriesDeleterService _categoriesDeleterService;
+		private readonly ICategoriesGetterService _categoriesGetterService;
+		private readonly ICategoriesUpdaterService _categoriesUpdaterService;
 		private readonly IMapper _mapper;
-		public CategoryController(IUnitOfWork unitOfWork, IMapper mapper)
+		public CategoryController(ICategoriesAdderService categoriesAdderService, ICategoriesDeleterService categoriesDeleterService, ICategoriesGetterService categoriesGetterService, ICategoriesUpdaterService categoriesUpdaterService, IMapper mapper)
 		{
-			_unitOfWork = unitOfWork;
+			_categoriesAdderService = categoriesAdderService;
+			_categoriesDeleterService = categoriesDeleterService;
+			_categoriesGetterService = categoriesGetterService;
+			_categoriesUpdaterService = categoriesUpdaterService;
 			_mapper = mapper;
 
 		}
@@ -32,8 +35,8 @@ namespace RealEstate.WebAPI.Controllers
 		{
 			try
 			{
-				IEnumerable<Category> categories = await _unitOfWork.CategoryRepository.GetAll();
-				return Ok(_mapper.Map<IEnumerable<CategoryResponseDTO>>(categories));
+				IEnumerable<CategoryResponseDTO> categories = await _categoriesGetterService.GetAllCategories();
+				return Ok(categories);
 
 
 			}
@@ -46,16 +49,16 @@ namespace RealEstate.WebAPI.Controllers
 		[ProducesResponseType(StatusCodes.Status403Forbidden)]
 		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		[ProducesResponseType(StatusCodes.Status200OK)]
-		public async Task<ActionResult<CategoryResponseDTO>> GetCategory(Guid id)
+		public async Task<ActionResult<CategoryResponseDTO>> GetCategoryById(Guid id)
 		{
 			try
 			{
-				Category? category = await _unitOfWork.CategoryRepository.Get(e => e.Id == id);
+				CategoryResponseDTO? category = await _categoriesGetterService.GetCategoryById(id);
 				if (category == null)
 				{
 					return NotFound($"Category with ID {id} not found.");
 				}
-				return Ok(_mapper.Map<CategoryResponseDTO>(category));
+				return Ok(category);
 			}
 			catch (Exception ex)
 			{
@@ -74,24 +77,8 @@ namespace RealEstate.WebAPI.Controllers
 			}
 			try
 			{
-				Category category = _mapper.Map<Category>(categoryCreateDTO);
-				category.Id = Guid.NewGuid();
-				category.CreatedAt = DateTime.UtcNow;
-				category.UpdatedAt = DateTime.UtcNow;
-				// Ensure a new ID is generated for the category
-				//Category category = new()
-				//{
-				//	Name = categoryCreateDTO.Name,
-				//	CreatedAt = DateTime.UtcNow,
-				//	UpdatedAt = DateTime.UtcNow
-				//};
-				await _unitOfWork.CategoryRepository.Add(category);
-
-				var createdCategory = await _unitOfWork.CategoryRepository.Get(
-			e => e.Id == category.Id);
-
-
-				return CreatedAtAction(nameof(GetCategory), new { id = createdCategory.Id }, _mapper.Map<CategoryResponseDTO>(createdCategory));
+				CategoryResponseDTO createdCategory = await _categoriesAdderService.AddCategoryAsync(categoryCreateDTO);
+				return CreatedAtAction(nameof(GetCategoryById), new { id = createdCategory.Id }, createdCategory);
 			}
 			catch (Exception ex)
 			{
@@ -106,17 +93,14 @@ namespace RealEstate.WebAPI.Controllers
 		{
 			try
 			{
-				Category? category = await _unitOfWork.CategoryRepository.Get(e => e.Id == id);
+				Category? category = _mapper.Map<Category>(await _categoriesGetterService.GetCategoryById(id));
 				if (category == null)
 				{
 					return NotFound($"Category with ID {id} not found.");
 				}
-				bool isDeleted = await _unitOfWork.CategoryRepository.Remove(category);
-				if (!isDeleted)
-				{
-					return StatusCode(StatusCodes.Status500InternalServerError, "Error deleting category.");
-				}
-				return Ok(_mapper.Map<CategoryResponseDTO>(category));
+				CategoryResponseDTO DeletedCategory = await _categoriesDeleterService.DeleteCategory(id);
+
+				return Ok(DeletedCategory);
 			}
 			catch (Exception ex)
 			{
@@ -135,25 +119,14 @@ namespace RealEstate.WebAPI.Controllers
 			}
 			try
 			{
-				Category category = _mapper.Map<Category>(categoryUpdateDTO);
-				category.UpdatedAt = DateTime.UtcNow;
-				//category.CreatedAt = categoryUpdateDTO.CreatedAt;
-				//Category? category = new Category
-				//{
-				//	Id = categoryUpdateDTO.Id,
-				//	Name = categoryUpdateDTO.Name,
-				//	CreatedAt = categoryUpdateDTO.CreatedAt,
-				//	UpdatedAt = DateTime.UtcNow
-				//};
+				CategoryResponseDTO category = await _categoriesUpdaterService.UpdateCategory(categoryUpdateDTO);
+
 				if (category == null)
 				{
 					return NotFound($"Category with ID {id} not found.");
 				}
-				await _unitOfWork.CategoryRepository.Update(category);
 
-				var updatedCategory = await _unitOfWork.CategoryRepository.Get(
-			e => e.Id == category.Id);
-				return Ok(_mapper.Map<CategoryResponseDTO>(updatedCategory));
+				return Ok(category);
 			}
 			catch (Exception ex)
 			{
@@ -171,7 +144,7 @@ namespace RealEstate.WebAPI.Controllers
 			}
 			try
 			{
-				Category? category = await _unitOfWork.CategoryRepository.Get(e => e.Id == id, noTracking: true);
+				Category? category = _mapper.Map<Category>(await _categoriesGetterService.GetCategoryById(id));
 				if (category == null)
 				{
 					return NotFound($"Category with ID {id} not found.");
@@ -182,11 +155,10 @@ namespace RealEstate.WebAPI.Controllers
 				{
 					return BadRequest(ModelState);
 				}
+				categoryUpdateDTO.Id = id;
 				Category updatedCategory = _mapper.Map<Category>(categoryUpdateDTO);
-				updatedCategory.Id = id;
-				await _unitOfWork.CategoryRepository.Update(updatedCategory);
-				var patchedCategory = await _unitOfWork.CategoryRepository.Get(
-			e => e.Id == updatedCategory.Id);
+				await _categoriesUpdaterService.UpdateCategory(categoryUpdateDTO);
+				var patchedCategory = await _categoriesGetterService.GetCategoryById(updatedCategory.Id);
 				return Ok(_mapper.Map<CategoryResponseDTO>(patchedCategory));
 			}
 			catch (Exception ex)

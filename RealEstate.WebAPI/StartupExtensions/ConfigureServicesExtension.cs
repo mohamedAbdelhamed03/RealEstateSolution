@@ -9,13 +9,19 @@ using RealEstate.Core.Domain.IdentityEntities;
 using RealEstate.Core.Domain.RepositoryContracts;
 using RealEstate.Core.Helpers;
 using RealEstate.Core.ServiceContracts;
+using RealEstate.Core.ServiceContracts.Estates;
 using RealEstate.Core.Services;
+using RealEstate.Core.Services.Estates;
+using RealEstate.Core.Services.Categories;
 using RealEstate.Infrastructure.DbContext;
 using RealEstate.Infrastructure.Repositories;
 using RealEstate.WebAPI;
 using System.Text;
+using RealEstate.Core.ServiceContracts.Categories;
+using RealEstate.Core.ServiceContracts.Companies;
+using RealEstate.Core.Services.Companies;
 
-namespace Templet.WebAPI.StartupExtensions
+namespace RealEstate.WebAPI.StartupExtensions
 {
 	public static class ConfigureServicesExtension
 	{
@@ -58,9 +64,30 @@ namespace Templet.WebAPI.StartupExtensions
 			services.AddScoped<IUnitOfWork, UnitOfWork>();
 			services.AddScoped<IAuthService, AuthService>();
 			services.AddScoped<IJwtService, JwtService>();
+			services.AddScoped<IEstatesAdderService, EstatesAdderService>();
+			services.AddScoped<IEstatesUpdaterService, EstatesUpdaterService>();
+			services.AddScoped<IEstatesDeleterService, EstatesDeleterService>();
+			services.AddScoped<IEstatesGetterService, EstatesGetterService>();
+			services.AddScoped<IEstatesSorterService, EstatesSorterService>();
+			services.AddScoped<ICategoriesGetterService, CategoriesGetterService>();
+			services.AddScoped<ICategoriesAdderService, CategoriesAdderService>();
+			services.AddScoped<ICategoriesUpdaterService, CategoriesUpdaterService>();
+			services.AddScoped<ICategoriesDeleterService, CategoriesDeleterService>();
+			services.AddScoped<ICompaniesAdderService, CompaniesAdderService>();
+			services.AddScoped<ICompaniesGetterService, CompaniesGetterService>();
+			services.AddScoped<ICompaniesUpdaterService, CompaniesUpdaterService>();
+			services.AddScoped<ICompaniesDeleterService, CompaniesDeleterService>();
+			services.AddScoped<ICompaniesSorterService, CompaniesSorterService>();
+
 			services.AddDbContext<ApplicationDbContext>(options =>
 			{
 				options.UseSqlServer(configuration.GetConnectionString("Default"));
+			});
+			services.AddHttpLogging(options =>
+			{
+				options.LoggingFields = Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.RequestPropertiesAndHeaders |
+					Microsoft.AspNetCore.HttpLogging.HttpLoggingFields.ResponsePropertiesAndHeaders;
+
 			});
 			services.Configure<JWT>(configuration.GetSection("JWT"));
 

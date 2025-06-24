@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RealEstate.Core.DTO
+namespace RealEstate.Core.DTOs
 {
 	public class CompanyCreateDTO
 	{

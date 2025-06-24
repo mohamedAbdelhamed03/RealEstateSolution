@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace RealEstate.Core.DTO
+namespace RealEstate.Core.DTOs
 {
 	public class LoginAndRegisterResponse
 	{

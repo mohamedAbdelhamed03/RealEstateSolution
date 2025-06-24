@@ -1,4 +1,4 @@
-﻿using RealEstate.Core.DTO;
+﻿using RealEstate.Core.DTOs;
 using RealEstate.Core.Helpers;
 using System;
 using System.Collections.Generic;
