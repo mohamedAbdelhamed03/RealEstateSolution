@@ -15,6 +15,7 @@ using RealEstate.Infrastructure.Repositories;
 using Serilog;
 using System.Text;
 using RealEstate.WebAPI.StartupExtensions;
+using RealEstate.WebAPI.Middlewares;
 
 namespace RealEstate.WebAPI
 {
@@ -23,7 +24,7 @@ namespace RealEstate.WebAPI
 		public static void Main(string[] args)
 		{
 			var builder = WebApplication.CreateBuilder(args);
-
+			//Serilog configuration
 			builder.Host.UseSerilog((HostBuilderContext contex, IServiceProvider services, LoggerConfiguration loggerConfiguration) =>
 			{
 				loggerConfiguration.ReadFrom.Configuration(contex.Configuration).ReadFrom.Services(services);
@@ -38,6 +39,11 @@ namespace RealEstate.WebAPI
 			{
 				app.UseSwagger();
 				app.UseSwaggerUI();
+				app.UseDeveloperExceptionPage();
+			}
+			else
+			{
+				app.UseExceptionHandlingMiddleware();
 			}
 			app.UseHsts();
 			app.UseHttpsRedirection();
